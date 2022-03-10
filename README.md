@@ -10,7 +10,7 @@ small game created in c++ that uses arrays, conditionals and loops made during m
 - iostream
 - sstream
 
-##Process
+## Process
 
 |  **Procces** | **Description **  |
 | :------------: | :------------: |
