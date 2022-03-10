@@ -1,0 +1,491 @@
+#include <stdlib.h>
+#include <time.h>
+#include <windows.h>
+
+#include <cstdlib>
+#include <iostream>
+#include <sstream>
+using namespace std;
+string item_info[100][2] = {
+    {"999", "Money"}, {"1", "Sticks"}, {"2", "Rock"}, {"3", "Wood"}, {"4", "Rock"}, {"5", "Raw Meat"}, {"6", "Charcoal"}, {"7", "Leaves"}, {"8", "Ground"}, {"9", "Cooked Meat" }, {"10", "Raw Fish"}, {"11", "Cooked Fish"}, {"12", "Iron"}, {"13", "Copper"}, {"14", " Iron Ore"}, {"100", "Furnace"}, {"101", "Wooden Sword"}, {"102", "Campfire"}, {"103", "Iron Sword"}, {"104", "Wooden Pickaxe"}, {"105", "Stone Pickaxe"}, {"106", "Stone Axe"}, {"500", "Test Item"},
+}; //declare items like {id,"name"}
+int inventory[10][2] = {{999, 50}, {105, 1}, {102, 1}, {10, 1}};//now in inventory declare {item id,amount}
+int mercader[5][3] = {{9, 10, 15}, {11, 10, 15}, {103, 1, 100}, {100, 1, 20}, {12, 10, 80}};  //in the merchant shoop declare {id,amount,price} 
+string name;
+
+void menu(string);
+void inventory_ops();
+
+void rem_item(int id, int amount) { //the remove item process work like rem_item(item id, item amount)
+        for (int i = 0; i < 10; i++) {
+                if (id == inventory[i][0]) {
+                        inventory[i][1] = inventory[i][1] - amount;
+                        if (inventory[i][1] == 0) {
+                                while (i < 10) {
+                                        inventory[i][0] = inventory[i + 1][0];
+                                        inventory[i][1] = inventory[i + 1][1];
+                                        i++;
+                                }
+                        }
+                }
+        }
+}
+
+void add_item(int id, int amount) {//add item work like rem item, the item id and the amount add_item(item id, item amount)
+        for (int i = 0; i < 10; i++) {
+                if (inventory[i][0] == id) {
+                        inventory[i][1] = inventory[i][1] + amount;
+                        break;
+                } else if (inventory[i][0] == 0) {
+                        inventory[i][0] = id;
+                        inventory[i][1] = amount;
+                        break;
+                }
+        }
+}
+
+void print_mercader() { //this process only print the merchant shop declared in the line 13, using the id, and amount
+        stringstream s_stream;
+        string id;
+        cout << "\t\nMERCHANTS SHOP";
+        for (int i = 0; i < 5; i++) {
+                s_stream << mercader[i][0];
+                s_stream >> id;
+                for (int j = 0; j < 23; j++) {
+                        if (id == item_info[j][0]) {
+                                cout << "\n" << i << ". " << item_info[j][1] << " x" << mercader[i][1] << " $" << mercader[i][2];
+                        }
+                }
+                s_stream.clear();
+        }
+}
+
+bool inv_space() {//this function check out if have some inventory space in a bool value, if have a 0 in the inventory this have space, if dont then the inventory is full
+        bool full_inv;
+        for (int i = 0; i < 10; i++) {
+                if (inventory[i][0] == 0) {
+                        full_inv = false;
+                } else {
+                        full_inv = true;
+                }
+        }
+        return full_inv;
+}
+
+void print_item(int pos) { //this process print the imput inventory item print_item(inventory array item pos)
+        stringstream s_stream;
+        string id;
+        s_stream << inventory[pos][0];
+        s_stream >> id;
+        for (int j = 0; j < 23; j++) {
+                if (id == item_info[j][0]) {
+                        cout << item_info[j][1] << " x" << inventory[pos][1];
+                }
+        }
+}
+
+void print_inv(string name) {//this process print all the player inventory 
+        stringstream s_stream;
+        string id;
+        cout << "\t"<<name<<" inventory";
+        for (int i = 0; i < 11; i++) {
+                s_stream << inventory[i][0];
+                s_stream >> id;
+                for (int j = 0; j < 23; j++) {
+                        if (id == item_info[j][0]) {
+                                cout << "\n" << i << ". " << item_info[j][1] << " x" << inventory[i][1];
+                        }
+                }
+                s_stream.clear();
+        }
+}
+
+bool search_items(int item_id, int item_min) { //This function is responsible for searching the objects in the inventory to check if the player has any of these
+        bool has_item = false;
+        for (int i = 0; i < 11; i++) {
+                if (item_id == inventory[i][0] && inventory[i][1] >= item_min) {
+                        has_item = true;
+                }
+        }
+        return has_item;
+}
+
+void Craft(int crafted, int craft_amount, int need1, int need1_amount, int need2, int need2_amount) { //this process is the craft proces and its very clean, only need Craft(item to craft, amount, item need, item need amount, item need2, amount2)
+        bool req1, req2;
+        req1 = search_items(need1, need1_amount);
+        req2 = search_items(need2, need2_amount);
+        if (req1 == true && req2 == true) {
+                rem_item(need1, need1_amount);
+                rem_item(need2, need2_amount);
+                add_item(crafted, craft_amount);
+        }
+}
+
+void Craftings() {//this process is in charge of checking if the player can craft the object he chooses
+        int select;
+        cout << "Craftings\n1.Cooked Meat x2 = Raw Meat x1 + Campfire x1\n2.Cooked Fish x2 = Raw Fish x1 + Campfire x1 \n3.Campfire x1 = Sticks x3 + Leaves x5\n4.Furnace x1 = Coal x4 + Rock x3\ n5.Iron x1 = Iron Ore x2 + Furnace x1\n";
+        cout << "r: ";
+        cin >> select;
+        switch (select) {
+                case 1:
+                        if (search_items(5, 1) == true && search_items(102, 1) == true) {
+                                Craft(9, 2, 5, 1, 102, 1);
+                                inventory_ops();
+                        } else {
+                                cout << "You don't have the items needed to create this item\n";
+                                system("PAUSE");
+                                inventory_ops();
+                        }
+                        break;
+                case 2:
+                        if (search_items(10, 1) == true && search_items(102, 1) == true) {
+                                Craft(11, 2, 10, 1, 102, 1);
+                                inventory_ops();
+                        } else {
+                                cout << "You don't have the items needed to create this item\n";
+                                system("PAUSE");
+                                inventory_ops();
+                        }
+                        break;
+                case 3:
+                        if (search_items(1, 3) == true && search_items(7, 5) == true) {
+                                Craft(102, 1, 1, 3, 7, 5);
+                                inventory_ops();
+                        } else {
+                                cout << "You don't have the items needed to create this item\n";
+                                system("PAUSE");
+                                inventory_ops();
+                        }
+                        break;
+                case 4:
+                        if (search_items(6, 4) == true && search_items(4, 3) == true) {
+                                Craft(100, 1, 6, 4, 4, 3);
+                                inventory_ops();
+                                break;
+                        } else {
+                                cout << "You don't have the items needed to create this item\n";
+                                system("PAUSE");
+                                inventory_ops();
+                        }
+                case 5:
+                        if (search_items(14, 2) == true && search_items(100, 1) == true) {
+                                Craft(12, 1, 14, 2, 100, 1);
+                                inventory_ops();
+                        } else {
+                                cout << "You don't have the items needed to create this item\n";
+                                system("PAUSE");
+                                inventory_ops();
+                        }
+                        break;
+                default:
+                        cout << "out of bounds\n";
+                        system("PAUSE");
+                        menu(name);
+        }
+}
+
+void Drop_item() {//this process drop a item from the inventory, so rem the item from the pos
+        int item, elect;
+        cout << "Number of the item to throw: ";
+        cin >> item;
+        cout << "Are you sure you want to throw ";
+        print_item(item);
+        cout << "\n1.Yes\n2.No\nr:";
+        cin >> elect;
+        if (elect == 1) {
+                rem_item(inventory[item][0], inventory[item][1]);
+                inventory_ops();
+        } else if (elect == 2) {
+                inventory_ops();
+        }
+}
+
+void inventory_ops() {//this process is mostly used to display the options available in the inventory and can be taken as part of the interface itself
+        system("CLS");
+        int select;
+        print_inv(name);
+        cout << "\nActions\n1.Create\n2.Launch\n3.Return\nr: ";
+        cin >> select;
+        switch (select) {
+                case 1:
+                        if (inv_space() == false) {
+                                Craftings();
+                        } else {
+                                cout << "You dont have enough inventory space, drop an item\n";
+                                system("PAUSE");
+                                inventory_ops();
+                        }
+                        break;
+                case 2:
+                        Drop_item();
+                        break;
+                case 3:
+                        menu(name);
+        }
+}
+
+void loot_tables(int n1, int n2, int n3, int n4) { //this process is used to obtain a pseudo-random item drop via a makeshift "loot table"
+        int loot_table[4][3] = {{0, 30, 666}, {31, 61, 12}, {62, 98, 106}, {99, 100, 1002}};//{item min num, item max num, item id (or event)}
+        int c, lost, extra, election, res;
+        cout << "\tYou've got";
+        for (int i = 0; i < 6; i++) {
+                if (n1 >= loot_table[i][0] && n1 <= loot_table[i][1]) {
+                        if (loot_table[i][2] > 106) {
+                                extra = loot_table[i][2];
+                        } else {
+                                add_item(loot_table[i][2], 1);
+                                stringstream s_stream;
+                                string id;
+                                s_stream << loot_table[i][2];
+                                s_stream >> id;
+                                for (int j = 0; j < 23; j++) {
+                                        if (id == item_info[j][0]) {
+                                                cout << "\nObtained: " << item_info[j][1] << " x1";
+                                        }
+                                }
+                        }
+                }
+                if (n2 >= loot_table[i][0] && n2 <= loot_table[i][1]) {
+                        if (loot_table[i][2] > 106) {
+                                extra = loot_table[i][2];
+                        } else {
+                                add_item(loot_table[i][2], 1);
+                                stringstream s_stream;
+                                string id;
+                                s_stream << loot_table[i][2];
+                                s_stream >> id;
+                                for (int j = 0; j < 23; j++) {
+                                        if (id == item_info[j][0]) {
+                                                cout << "\nObtained: " << item_info[j][1] << " x1";
+                                        }
+                                }
+                        }
+                }
+                if (n3 >= loot_table[i][0] && n3 <= loot_table[i][1]) {
+                        if (loot_table[i][2] > 106) {
+                                extra = loot_table[i][2];
+                        } else {
+                                add_item(loot_table[i][2], 1);
+                                stringstream s_stream;
+                                string id;
+                                s_stream << loot_table[i][2];
+                                s_stream >> id;
+                                for (int j = 0; j < 23; j++) {
+                                        if (id == item_info[j][0]) {
+                                                cout << "\nObtained: " << item_info[j][1] << " x1";
+                                        }
+                                }
+                        }
+                }
+                if (n4 >= loot_table[i][0] && n4 <= loot_table[i][1]) {
+                        if (loot_table[i][2] > 106) {
+                                extra = loot_table[i][2];
+                        } else {
+                                add_item(loot_table[i][2], 1);
+                                stringstream s_stream;
+                                string id;
+                                s_stream << loot_table[i][2];
+                                s_stream >> id;
+                                for (int j = 0; j < 23; j++) {
+                                        if (id == item_info[j][0]) {
+                                                cout << "\nObtained: " << item_info[j][1] << " x1";
+                                        }
+                                }
+                        }
+                }
+        }
+        if (extra > 106) {
+                if (extra == 666) {//this is a event that can be found in the loot table pos1
+                        for (int i = 0; i < 10; i++) {
+                                if (inventory[i][0] != 0) {
+                                        c++;
+                                }
+                                lost = rand() % c;
+                        }
+                        cout << "\n\tYOU HAVE DIED AND LOST\n";
+                        print_item(lost);
+                        cout << "\n";
+                        rem_item(inventory[lost][0], inventory[lost][1]);
+                        menu(name);
+                }
+                if (extra == 1002) {
+                        cout << "\n\tYou found the merchant, you can buy an item from his shop\n";
+                        print_mercader();
+                        cout << "shares\n1.buy\n2.leave\nr: ";
+                        cin >> election;
+                        switch (election) {
+                                case 1:
+                                        cout << "\nto buy: ";
+                                        cin >> res;
+                                        if (search_items(999, mercader[res][2]) == true) {
+                                                add_item(mercader[res][1], 1);
+                                                rem_item(999, mercader[res][2]);
+                                                menu(name);
+                                        }
+                                        break;
+                                case 2:
+                                        menu(name);
+                                        break;
+                        }
+                }
+        }
+}
+
+void contador(string action, int tim) {//this porcess its only a countdown for the required time of each action contador("action text",time)
+        system("CLS");
+        for (int i = tim; i > 0; i--) {
+                Sleep(tim);
+                cout << "\t" << name << " " << action << i - 1 << "s...";
+                Sleep(200);
+                system("CLS");
+        }
+}
+
+void explore() {//the process used to define the explore option, only send a wait time and get 4 pseudo-random numbers and send this to loot tables function
+        system("CLS");
+        cout << "\t" << name << " started his crusade";
+        Sleep(500);
+        contador("going back in ", 10);
+        int n1 = rand() % 100;
+        int n2 = rand() % 100;
+        int n3 = rand() % 100;
+        int n4 = rand() % 100;
+        loot_tables(n1, n2, n3, n4);
+        menu(name);
+}
+
+void mine_table(int n1, int n2) {//this its exactly the loot_table function but for mine items so it get only 2 numbers
+        int loot_mintable[3][3] = {{0, 50, 6}, {51, 81, 14}, {82, 95, 13}};
+        for (int i = 0; i < 6; i++) {
+                if (n1 >= loot_mintable[i][0] && n1 <= loot_mintable[i][1]) {
+                        add_item(loot_mintable[i][2], 1);
+                        stringstream s_stream;
+                        string id;
+                        s_stream << loot_mintable[i][2];
+                        s_stream >> id;
+                        for (int j = 0; j < 23; j++) {
+                                if (id == item_info[j][0]) {
+                                        cout << "\nObtained: " << item_info[j][1] << " x1";
+                                }
+                        }
+                }
+                if (n2 >= loot_mintable[i][0] && n2 <= loot_mintable[i][1]) {
+                        add_item(loot_mintable[i][2], 1);
+                        add_item(999, 20);
+                        stringstream s_stream;
+                        string id;
+                        s_stream << loot_mintable[i][2];
+                        s_stream >> id;
+                        for (int j = 0; j < 23; j++) {
+                                if (id == item_info[j][0]) {
+                                        cout << "\nObtained: " << item_info[j][1] << " x1";
+                                        cout << "\nObtained: " << item_info[0][1] << " x20\n";
+                                }
+                        }
+                }
+        }
+        menu(name);
+}
+
+void mine() {//the process used for the mine action
+        system("CLS");
+        cout << "\t" << name << " went to the mine";
+        Sleep(500);
+        contador("Chopping rock, estimated time to return ", 15);
+        int n1 = rand() % 100;
+        int n2 = rand() % 100;
+        mine_table(n1, n2);
+}
+
+void wood_table(int n1, int n2) {//the wood table process its the same that loot table and the mine table
+        int wood_tables[3][3] = {{0, 40, 3}, {41, 81, 1}, {81, 100, 7}};
+        for (int i = 0; i < 6; i++) {
+                if (n1 >= wood_tables[i][0] && n1 <= wood_tables[i][1]) {
+                        add_item(wood_tables[i][2], 1);
+                        stringstream s_stream;
+                        string id;
+                        s_stream << wood_tables[i][2];
+                        s_stream >> id;
+                        for (int j = 0; j < 23; j++) {
+                                if (id == item_info[j][0]) {
+                                        cout << "\nObtained: " << item_info[j][1] << " x1";
+                                }
+                        }
+                }
+                if (n2 >= wood_tables[i][0] && n2 <= wood_tables[i][1]) {
+                        add_item(wood_tables[i][2], 1);
+                        add_item(999, 35);
+                        stringstream s_stream;
+                        string id;
+                        s_stream << wood_tables[i][2];
+                        s_stream >> id;
+                        for (int j = 0; j < 23; j++) {
+                                if (id == item_info[j][0]) {
+                                        cout << "\nObtained: " << item_info[j][1] << " x1";
+                                        cout << "\nObtained: " << item_info[0][1] << " x35\n";
+                                }
+                        }
+                }
+        }
+        menu(name);
+}
+
+void talar() {//this is the action defined to cut down trees just like the previous ones
+        system("CLS");
+        cout << "\t" << name << " went out to the forest to cut down";
+        Sleep(500);
+        contador("is promoting deforestation, estimated time to return ", 15);
+        int n1 = rand() % 100;
+        int n2 = rand() % 100;
+        wood_table(n1, n2);
+}
+
+void menu(string name) {//this are the menu, than move to the others options
+        int select;
+        bool hacha = search_items(106, 1);
+        bool pico;
+        if (search_items(104, 1) == true || search_items(105, 1) == true) {
+                pico = true;
+        }
+        system("PAUSE");
+        system("CLS");
+        cout << "Welcome " << name << endl;
+        cout << "actions \n1.Inventory\n2.Explore\n";
+        if (pico == true) {
+                cout << "3.Mine\n";
+        }
+        if (hacha == true) {
+                cout << "4.cut down\n";
+        }
+        cout << "r: ";
+        cin >> select;
+        switch (select) {
+                case 1:
+                        inventory_ops();
+                        break;
+                case 2:
+                        explore();
+                        break;
+                case 3:
+                        if (pico == true) {
+                                mine();
+                        } else {
+                                menu(name);
+                        }
+                case 4:
+                        if (hacha == true) {
+                                talar();
+                        } else {
+                                menu(name);
+                        }
+        }
+}
+
+int main() {
+        cout << "Welcome" << endl;
+        cout << "name: ";
+        cin >> name;
+        srand(time(NULL));
+        menu(name);
+        return 0;
+}
