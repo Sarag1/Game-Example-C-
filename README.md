@@ -12,7 +12,7 @@ small game created in c++ that uses arrays, conditionals and loops made during m
 
 ## Process
 
-|  **Procces** | **Description **  |
+|  **Procces** | **Description**  |
 | :------------: | :------------: |
 |  rem_item(id,amount) | Remove a item from the inventory |
 | add_item(id,amount)  | Add items to the inventory  |
